@@ -1,0 +1,37 @@
+{
+  "name": "indy_tech_test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json -outDir dist",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "jest": "jest",
+    "test": "yarn lint && yarn jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.6.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.9",
+    "@typescript-eslint/eslint-plugin": "^7.14.1",
+    "@typescript-eslint/parser": "^7.14.1",
+    "eslint": "9.x",
+    "globals": "^15.6.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2",
+    "typescript-eslint": "^7.14.1"
+  },
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.0",
+    "fastify-type-provider-zod": "^2.0.0",
+    "pino": "^9.2.0",
+    "zod": "^3.23.8"
+  }
+}

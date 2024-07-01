@@ -1,0 +1,517 @@
+{
+  "info": {
+    "_postman_id": "70c74283-60cd-4a45-9d7b-826c7f6a6033",
+    "name": "Indy-promocodes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36647145"
+  },
+  "item": [
+    {
+      "name": "Generate and Validate a weather promocode",
+      "item": [
+        {
+          "name": "Get open weather data for lyon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('is', pm.response.json().weather[0].main)",
+                  "pm.collectionVariables.set('temperatureCelsiusgt', pm.response.json().main.temp - 5)",
+                  "pm.collectionVariables.set('temperatureCelsiuslt', pm.response.json().main.temp + 5)",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.openweathermap.org/data/2.5/weather?lat=45.7640&lon=4.8357&&units=metric&appid={{API key}}",
+              "protocol": "https",
+              "host": ["api", "openweathermap", "org"],
+              "path": ["data", "2.5", "weather"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "45.7640"
+                },
+                {
+                  "key": "lon",
+                  "value": "4.8357"
+                },
+                {
+                  "key": null,
+                  "value": null
+                },
+                {
+                  "key": "units",
+                  "value": "metric"
+                },
+                {
+                  "key": "appid",
+                  "value": "{{API key}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create a new promocode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "    pm.expect(pm.response.to.have.status(201));",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required field 'success'\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('success');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Success field is a boolean value\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.success).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"DOMTEST1\",\n    \"restrictions\": [\n        {\n            \"age\": {\n                \"eq\": 40\n            }\n        },\n        {\n            \"weather\": {\n                \"is\": \"{{is}}\",\n                \"temperatureCelsius\": {\n                    \"gt\": {{temperatureCelsiusgt}},\n                    \"lt\": {{temperatureCelsiuslt}}\n                }\n            }\n        }\n    ],\n    \"advantage\": {\n        \"percent\": 50\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode",
+              "host": ["{{base_url}}"],
+              "path": ["promocode"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate a promocode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.promocode_name).to.exist;",
+                  "    pm.expect(responseData.status).to.exist;",
+                  "    pm.expect(responseData.advantage).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Promocode name is a non-empty string\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.promocode_name).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Promocode name should not be empty\");",
+                  "});",
+                  "",
+                  "pm.test(\"Status is either active or inactive\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.status).to.be.a('string').and.to.satisfy((status) => {",
+                  "        return status === \"accepted\";",
+                  "    }, \"Status should be either accepted\");",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"DOMTEST1\",\n    \"arguments\": {\n        \"age\": 40,\n        \"location\": {\n            \"lat\": 45.7640,\n            \"lon\": 4.8357\n        }\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode/validate",
+              "host": ["{{base_url}}"],
+              "path": ["promocode", "validate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Try to validate an inactive promocode",
+      "item": [
+        {
+          "name": "Create a new promocode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "    pm.expect(pm.response.to.have.status(201));",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required field 'success'\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('success');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Success field is a boolean value\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.success).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"DOMTEST2\",\n    \"restrictions\": [\n        {\n            \"age\": {\n                \"eq\": 40\n            }\n        }\n    ],\n    \"advantage\": {\n        \"fixed\": 20\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode",
+              "host": ["{{base_url}}"],
+              "path": ["promocode"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set the promocode as inactive",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.to.have.status(200));",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required field 'success'\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('success');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Success field is a boolean value\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.success).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\":\"DOMTEST2\",\n    \"active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode/toggle-activation",
+              "host": ["{{base_url}}"],
+              "path": ["promocode", "toggle-activation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fail to validate the promocode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(403);",
+                  "});",
+                  "",
+                  "pm.test(\"Status is either active or inactive\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.status).to.be.a('string').and.to.satisfy((status) => {",
+                  "        return status === \"denied\";",
+                  "    }, \"Status should be either denied\");",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"DOMTEST2\",\n    \"arguments\": {\n        \"age\": 40\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode/validate",
+              "host": ["{{base_url}}"],
+              "path": ["promocode", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set the promocode as active",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.to.have.status(200));",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required field 'success'\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('success');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Success field is a boolean value\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.success).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\":\"DOMTEST2\",\n    \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode/toggle-activation",
+              "host": ["{{base_url}}"],
+              "path": ["promocode", "toggle-activation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Successfully validate the promocode",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.promocode_name).to.exist;",
+                  "    pm.expect(responseData.status).to.exist;",
+                  "    pm.expect(responseData.advantage).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Promocode name is a non-empty string\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.promocode_name).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Promocode name should not be empty\");",
+                  "});",
+                  "",
+                  "pm.test(\"Status is either active or inactive\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.status).to.be.a('string').and.to.satisfy((status) => {",
+                  "        return status === \"accepted\";",
+                  "    }, \"Status should be either accepted\");",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"DOMTEST2\",\n    \"arguments\": {\n        \"age\": 40\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/promocode/validate",
+              "host": ["{{base_url}}"],
+              "path": ["promocode", "validate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "API key",
+      "value": ""
+    },
+    {
+      "key": "is",
+      "value": ""
+    },
+    {
+      "key": "temperatureCelsius",
+      "value": ""
+    },
+    {
+      "key": "temperatureCelsiusgt",
+      "value": ""
+    },
+    {
+      "key": "temperatureCelsiuslt",
+      "value": ""
+    },
+    {
+      "key": "base_url",
+      "value": ""
+    }
+  ]
+}
